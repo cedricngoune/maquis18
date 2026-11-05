@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: maquis18-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: maquis18
+      POSTGRES_PASSWORD: maquis18
+      POSTGRES_DB: maquis18
+    ports:
+      - "5435:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:

@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DishTag {
+  HOMEMADE
+  SPICY
+  VEGETARIAN
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+model Category {
+  id       String @id @default(cuid())
+  name     String
+  slug     String @unique
+  position Int    @default(0)
+  dishes   Dish[]
+}
+
+model Dish {
+  id           String    @id @default(cuid())
+  name         String
+  description  String
+  priceInCents Int
+  tags         DishTag[]
+  imageUrl     String?
+  isAvailable  Boolean   @default(true)
+  position     Int       @default(0)
+  category     Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId   String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([categoryId])
+}
+
+model OpeningHour {
+  id        String @id @default(cuid())
+  /// 0 = Sunday … 6 = Saturday
+  dayOfWeek Int    @unique
+  opensAt   String // "11:00"
+  closesAt  String // "22:00"
+}
+
+model Reservation {
+  id        String            @id @default(cuid())
+  date      DateTime          @db.Date
+  time      String // "19:30"
+  guests    Int
+  name      String
+  phone     String
+  status    ReservationStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+
+  @@index([date])
+}
+
+model AdminUser {
+  id           String @id @default(cuid())
+  email        String @unique
+  passwordHash String
+}

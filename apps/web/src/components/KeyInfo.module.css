@@ -1,0 +1,25 @@
+.band {
+  background: var(--color-forest);
+  color: var(--color-cream);
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+  margin: 0;
+  padding-block: 28px;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 24px;
+  color: #fff;
+}

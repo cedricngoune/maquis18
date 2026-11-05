@@ -1,0 +1,55 @@
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 36px;
+}
+
+.rating {
+  margin: 0;
+  font-size: 18px;
+  color: var(--color-muted);
+}
+
+.score {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 24px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 28px;
+  border: 1px solid var(--color-line);
+  border-radius: 20px;
+  background: var(--color-card);
+}
+
+.stars {
+  color: #b5741c;
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+
+.quote {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.author {
+  font-size: 14px;
+  color: #6a5844;
+}

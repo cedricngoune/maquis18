@@ -1,0 +1,15 @@
+.placeholder {
+  display: flex;
+  align-items: flex-end;
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  background: #e9d9bf;
+}
+
+.label {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--color-cream);
+  color: #5a4a38;
+  font-size: 14px;
+}

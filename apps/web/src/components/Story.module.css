@@ -1,0 +1,26 @@
+.story {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 56px;
+}
+
+.photo {
+  flex: 1 1 380px;
+  min-width: 0;
+}
+
+.text {
+  flex: 1 1 460px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.body {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.7;
+  color: var(--color-muted);
+}
