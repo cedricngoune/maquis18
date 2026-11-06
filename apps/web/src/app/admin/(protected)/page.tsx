@@ -125,7 +125,7 @@ export default function AdminReservationsPage() {
                 <th scope="col">Heure</th>
                 <th scope="col">Nom</th>
                 <th scope="col">Pers.</th>
-                <th scope="col">Téléphone</th>
+                <th scope="col">Contact</th>
                 <th scope="col">Statut</th>
                 <th scope="col">
                   <span className="visually-hidden">Actions</span>
@@ -140,6 +140,14 @@ export default function AdminReservationsPage() {
                   <td>{reservation.guests}</td>
                   <td>
                     <a href={`tel:${reservation.phone.replace(/\s/g, '')}`}>{reservation.phone}</a>
+                    {reservation.email && (
+                      <>
+                        <br />
+                        <a href={`mailto:${reservation.email}`} className={styles.muted}>
+                          {reservation.email}
+                        </a>
+                      </>
+                    )}
                   </td>
                   <td>
                     <span className={`${styles.badge} ${styles[`badge${reservation.status}`]}`}>

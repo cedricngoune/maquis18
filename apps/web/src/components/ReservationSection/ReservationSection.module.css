@@ -34,6 +34,7 @@
 }
 
 .panel {
+  position: relative; /* anchors the off-screen honeypot */
   flex: 1 1 480px;
   min-width: 0;
   display: flex;
@@ -103,4 +104,73 @@
 .form button:disabled {
   opacity: 0.7;
   cursor: wait;
+}
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.suggestion {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--color-forest);
+  border-radius: 999px;
+  background: #eaf0ec;
+  color: var(--color-forest);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.suggestion:hover {
+  background: var(--color-forest);
+  color: #fff;
+}
+
+.captcha {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 65px; /* reserves the widget's height: no layout jump when it appears */
+}
+
+/* Off-screen rather than display:none, which some bots detect */
+.honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* ---------- Time slot dropdown ---------- */
+.selectWrapper {
+  position: relative;
+}
+
+.selectWrapper select {
+  width: 100%;
+  padding-right: 44px; /* room for the clock icon */
+  appearance: none; /* hides the browser's default arrow */
+  cursor: pointer;
+}
+
+.selectWrapper select:invalid {
+  color: #6a5f55; /* placeholder look while no slot is chosen */
+}
+
+.selectWrapper option,
+.selectWrapper optgroup {
+  color: var(--color-ink);
+}
+
+.selectIcon {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  color: var(--color-muted);
+  pointer-events: none;
 }

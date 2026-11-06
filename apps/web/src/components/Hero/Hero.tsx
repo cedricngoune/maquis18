@@ -1,4 +1,4 @@
-import { PhotoPlaceholder } from './PhotoPlaceholder';
+import { PhotoPlaceholder } from '../PhotoPlaceholder/PhotoPlaceholder';
 import styles from './Hero.module.css';
 
 export function Hero() {

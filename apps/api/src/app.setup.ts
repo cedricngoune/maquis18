@@ -1,4 +1,5 @@
 import { ValidationPipe, type INestApplication } from '@nestjs/common';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { validationExceptionFactory } from './common/validation-exception.factory';
 
 /**
@@ -6,6 +7,12 @@ import { validationExceptionFactory } from './common/validation-exception.factor
  * so the tests run against exactly the same app as production.
  */
 export function configureApp(app: INestApplication): void {
+  // Behind a hosting proxy (Railway, Render…), trust X-Forwarded-For so that rate limiting
+  // and the captcha see the visitor's real IP instead of the proxy's
+  if (process.env.TRUST_PROXY === 'true') {
+    (app as NestExpressApplication).set('trust proxy', 1);
+  }
+
   app.enableCors({ origin: process.env.WEB_ORIGIN ?? 'http://localhost:3001' });
 
   // Validates every request body against its DTO (class-validator decorators)

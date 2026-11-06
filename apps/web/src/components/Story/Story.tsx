@@ -1,4 +1,4 @@
-import { PhotoPlaceholder } from './PhotoPlaceholder';
+import { PhotoPlaceholder } from '../PhotoPlaceholder/PhotoPlaceholder';
 import styles from './Story.module.css';
 
 export function Story() {

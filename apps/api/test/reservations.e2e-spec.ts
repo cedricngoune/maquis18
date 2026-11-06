@@ -11,6 +11,8 @@ const validReservation = () => ({
   guests: 2,
   name: 'Awa Diallo',
   phone: '06 12 34 56 78',
+  email: 'awa.diallo@example.com',
+  captchaToken: 'test-token', // no TURNSTILE_SECRET_KEY in .env.test: the captcha check is skipped
 });
 
 describe('POST /reservations (e2e)', () => {
@@ -43,6 +45,9 @@ describe('POST /reservations (e2e)', () => {
     ['before opening', { time: '10:30' }, 'time'],
     ['too close to closing', { time: '21:45' }, 'time'],
     ['impossible date', { date: '2030-02-31' }, 'date'],
+    ['time not on a quarter hour', { time: '19:10' }, 'time'],
+    ['invalid e-mail', { email: 'awa@' }, 'email'],
+    ['missing captcha token', { captchaToken: '' }, 'captchaToken'],
   ])('rejects %s', async (_label, override, field) => {
     const response = await request(ctx.app.getHttpServer())
       .post('/reservations')

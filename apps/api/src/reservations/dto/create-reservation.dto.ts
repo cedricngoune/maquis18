@@ -1,7 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { MAX_GUESTS, type CreateReservationRequest } from '@maquis18/shared';
 import { Transform } from 'class-transformer';
-import { IsInt, IsNotEmpty, IsString, Matches, Max, MaxLength, Min } from 'class-validator';
+import { IsEmail, IsInt, IsNotEmpty, IsOptional, IsString, Matches, Max, MaxLength, Min } from 'class-validator';
 
 const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
 
@@ -10,8 +10,8 @@ export class CreateReservationDto implements CreateReservationRequest {
   @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'La date doit être au format AAAA-MM-JJ.' })
   date: string;
 
-  @ApiProperty({ example: '19:30', description: 'Heure locale (HH:mm)' })
-  @Matches(/^([01]\d|2[0-3]):[0-5]\d$/, { message: "L'heure doit être au format HH:mm." })
+  @ApiProperty({ example: '19:30', description: 'Heure locale, au quart d’heure (HH:mm)' })
+  @Matches(/^([01]\d|2[0-3]):(00|15|30|45)$/, { message: 'Choisissez un horaire au quart d’heure (par exemple 19:30).' })
   time: string;
 
   @ApiProperty({ example: 2, minimum: 1, maximum: MAX_GUESTS })
@@ -33,4 +33,20 @@ export class CreateReservationDto implements CreateReservationRequest {
     message: 'Merci d’indiquer un numéro de téléphone français valide.',
   })
   phone: string;
+
+  @ApiProperty({ example: 'awa.diallo@example.com', description: 'Reçoit le récapitulatif et la confirmation' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
+  @IsEmail({}, { message: 'Merci d’indiquer une adresse e-mail valide.' })
+  @MaxLength(120, { message: 'L’adresse e-mail est trop longue.' })
+  email: string;
+
+  @ApiProperty({ description: 'Jeton Cloudflare Turnstile (en local, n’importe quelle valeur est acceptée sans clé secrète)' })
+  @IsString()
+  @IsNotEmpty({ message: 'Merci de valider la vérification anti-robot.' })
+  captchaToken: string;
+
+  @ApiPropertyOptional({ description: 'Champ piège : doit rester vide (invisible pour un humain)' })
+  @IsOptional()
+  @IsString()
+  website?: string;
 }

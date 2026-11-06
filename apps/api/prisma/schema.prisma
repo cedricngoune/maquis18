@@ -59,10 +59,13 @@ model Reservation {
   guests    Int
   name      String
   phone     String
+  /// Optional only because reservations made before this field existed have none
+  email     String?
   status    ReservationStatus @default(PENDING)
   createdAt DateTime          @default(now())
 
   @@index([date])
+  @@index([date, time])
 }
 
 model AdminUser {
