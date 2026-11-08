@@ -138,9 +138,7 @@ export class ReservationsService {
     }
     const bookable = candidates.filter(
       (minutes) =>
-        minutes >= firstSlot &&
-        minutes <= lastSlot &&
-        (isoDate !== now.date || minutes > toMinutes(now.time)),
+        minutes >= firstSlot && minutes <= lastSlot && (isoDate !== now.date || minutes > toMinutes(now.time)),
     );
 
     // One query for the whole day, then count per slot in memory

@@ -11,7 +11,9 @@ export class CreateReservationDto implements CreateReservationRequest {
   date: string;
 
   @ApiProperty({ example: '19:30', description: 'Heure locale, au quart d’heure (HH:mm)' })
-  @Matches(/^([01]\d|2[0-3]):(00|15|30|45)$/, { message: 'Choisissez un horaire au quart d’heure (par exemple 19:30).' })
+  @Matches(/^([01]\d|2[0-3]):(00|15|30|45)$/, {
+    message: 'Choisissez un horaire au quart d’heure (par exemple 19:30).',
+  })
   time: string;
 
   @ApiProperty({ example: 2, minimum: 1, maximum: MAX_GUESTS })
@@ -40,7 +42,9 @@ export class CreateReservationDto implements CreateReservationRequest {
   @MaxLength(120, { message: 'L’adresse e-mail est trop longue.' })
   email: string;
 
-  @ApiProperty({ description: 'Jeton Cloudflare Turnstile (en local, n’importe quelle valeur est acceptée sans clé secrète)' })
+  @ApiProperty({
+    description: 'Jeton Cloudflare Turnstile (en local, n’importe quelle valeur est acceptée sans clé secrète)',
+  })
   @IsString()
   @IsNotEmpty({ message: 'Merci de valider la vérification anti-robot.' })
   captchaToken: string;

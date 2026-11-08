@@ -1,12 +1,13 @@
+import { RESTAURANT as RESTAURANT_INFO, formatRestaurantAddress } from '@maquis18/shared';
 import type { Reservation } from '@prisma/client';
 import type { MailMessage } from '../mail/mail.service';
 
 type EmailKind = 'received' | 'confirmed' | 'cancelled';
 
 const RESTAURANT = {
-  name: 'Maquis 18',
-  address: '[ADRESSE FICTIVE], 75018 Paris',
-  phone: '01 00 00 00 00',
+  name: RESTAURANT_INFO.name,
+  address: formatRestaurantAddress(),
+  phone: RESTAURANT_INFO.phone.display,
 };
 
 const COPY: Record<EmailKind, { subject: string; title: string; intro: string }> = {
@@ -33,7 +34,13 @@ const escapeHtml = (value: string) =>
   value.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]!);
 
 const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(date);
+  new Intl.DateTimeFormat('fr-FR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(date);
 
 export function buildReservationEmail(kind: EmailKind, reservation: Reservation & { email: string }): MailMessage {
   const copy = COPY[kind];

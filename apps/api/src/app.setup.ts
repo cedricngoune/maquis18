@@ -1,5 +1,6 @@
 import { ValidationPipe, type INestApplication } from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
+import cookieParser from 'cookie-parser';
 import { validationExceptionFactory } from './common/validation-exception.factory';
 
 /**
@@ -13,7 +14,12 @@ export function configureApp(app: INestApplication): void {
     (app as NestExpressApplication).set('trust proxy', 1);
   }
 
-  app.enableCors({ origin: process.env.WEB_ORIGIN ?? 'http://localhost:3001' });
+  // Reads the httpOnly session cookie of the back-office (request.cookies)
+  app.use(cookieParser());
+
+  // credentials: true lets the browser send and receive the session cookie across origins
+  // (the origin must then be explicit, never "*")
+  app.enableCors({ origin: process.env.WEB_ORIGIN ?? 'http://localhost:3001', credentials: true });
 
   // Validates every request body against its DTO (class-validator decorators)
   app.useGlobalPipes(

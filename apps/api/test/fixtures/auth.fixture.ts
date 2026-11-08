@@ -2,7 +2,7 @@ import type { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { hash } from 'bcryptjs';
 import request from 'supertest';
-import type { LoginResponse } from '@maquis18/shared';
+import { ADMIN_SESSION_COOKIE } from '../../src/auth/auth.cookie';
 import type { PrismaService } from '../../src/prisma/prisma.service';
 
 /** Credentials of the default test admin (test database only) */
@@ -20,10 +20,13 @@ export async function createAdmin(prisma: PrismaService, credentials: Credential
   return prisma.adminUser.create({ data: { email: credentials.email, passwordHash } });
 }
 
-/** Logs in through the real POST /auth/login route and returns the JWT */
+/** Logs in through the real POST /auth/login route and returns the JWT read from the session cookie */
 export async function getAuthToken(app: INestApplication, credentials: Credentials = TEST_ADMIN): Promise<string> {
   const response = await request(app.getHttpServer()).post('/auth/login').send(credentials).expect(200);
-  return (response.body as LoginResponse).accessToken;
+  const setCookie = ([] as string[]).concat(response.headers['set-cookie'] ?? []);
+  const sessionCookie = setCookie.find((cookie) => cookie.startsWith(`${ADMIN_SESSION_COOKIE}=`));
+  if (!sessionCookie) throw new Error('Aucun cookie de session dans la réponse de /auth/login');
+  return sessionCookie.split(';')[0].slice(ADMIN_SESSION_COOKIE.length + 1);
 }
 
 /** Shortcut for supertest: .set(authHeader(token)) */

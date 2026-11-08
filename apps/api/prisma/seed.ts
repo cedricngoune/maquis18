@@ -10,19 +10,54 @@ const menu: { name: string; slug: string; dishes: SeedDish[] }[] = [
     name: 'Plats',
     slug: 'plats',
     dishes: [
-      { name: 'Attiéké poisson braisé', description: 'Semoule de manioc, poisson braisé entier, oignons et piment frais.', priceInCents: 1400, tags: ['HOMEMADE', 'SPICY'] },
-      { name: 'Foutou banane, sauce graine', description: 'Purée de banane plantain et manioc, sauce noix de palme et viande.', priceInCents: 1300, tags: ['HOMEMADE'] },
-      { name: 'Mafé de bœuf', description: 'Bœuf mijoté dans une sauce à l’arachide, riz blanc.', priceInCents: 1200, tags: ['HOMEMADE'] },
-      { name: 'Poulet yassa', description: 'Poulet mariné au citron et aux oignons confits, riz parfumé.', priceInCents: 1200, tags: ['HOMEMADE'] },
-      { name: 'Riz gras', description: 'Riz cuit dans une sauce tomate épicée, légumes et viande.', priceInCents: 1000, tags: ['SPICY'] },
-      { name: 'Mafé de légumes', description: 'Légumes de saison, sauce arachide, riz blanc.', priceInCents: 1100, tags: ['VEGETARIAN'] },
+      {
+        name: 'Attiéké poisson braisé',
+        description: 'Semoule de manioc, poisson braisé entier, oignons et piment frais.',
+        priceInCents: 1400,
+        tags: ['HOMEMADE', 'SPICY'],
+      },
+      {
+        name: 'Foutou banane, sauce graine',
+        description: 'Purée de banane plantain et manioc, sauce noix de palme et viande.',
+        priceInCents: 1300,
+        tags: ['HOMEMADE'],
+      },
+      {
+        name: 'Mafé de bœuf',
+        description: 'Bœuf mijoté dans une sauce à l’arachide, riz blanc.',
+        priceInCents: 1200,
+        tags: ['HOMEMADE'],
+      },
+      {
+        name: 'Poulet yassa',
+        description: 'Poulet mariné au citron et aux oignons confits, riz parfumé.',
+        priceInCents: 1200,
+        tags: ['HOMEMADE'],
+      },
+      {
+        name: 'Riz gras',
+        description: 'Riz cuit dans une sauce tomate épicée, légumes et viande.',
+        priceInCents: 1000,
+        tags: ['SPICY'],
+      },
+      {
+        name: 'Mafé de légumes',
+        description: 'Légumes de saison, sauce arachide, riz blanc.',
+        priceInCents: 1100,
+        tags: ['VEGETARIAN'],
+      },
     ],
   },
   {
     name: 'Accompagnements',
     slug: 'accompagnements',
     dishes: [
-      { name: 'Alloco', description: 'Banane plantain frite, sauce pimentée maison.', priceInCents: 400, tags: ['VEGETARIAN'] },
+      {
+        name: 'Alloco',
+        description: 'Banane plantain frite, sauce pimentée maison.',
+        priceInCents: 400,
+        tags: ['VEGETARIAN'],
+      },
       { name: 'Attiéké nature', description: 'Semoule de manioc légère.', priceInCents: 300, tags: ['VEGETARIAN'] },
     ],
   },
@@ -31,7 +66,12 @@ const menu: { name: string; slug: string; dishes: SeedDish[] }[] = [
     slug: 'boissons',
     dishes: [
       { name: 'Bissap', description: 'Infusion d’hibiscus, menthe fraîche.', priceInCents: 350, tags: ['HOMEMADE'] },
-      { name: 'Gingembre', description: 'Jus de gingembre pressé, citron vert.', priceInCents: 350, tags: ['HOMEMADE', 'SPICY'] },
+      {
+        name: 'Gingembre',
+        description: 'Jus de gingembre pressé, citron vert.',
+        priceInCents: 350,
+        tags: ['HOMEMADE', 'SPICY'],
+      },
       { name: 'Bouye', description: 'Jus de pain de singe, onctueux.', priceInCents: 400, tags: ['HOMEMADE'] },
     ],
   },
@@ -40,7 +80,12 @@ const menu: { name: string; slug: string; dishes: SeedDish[] }[] = [
     slug: 'desserts',
     dishes: [
       { name: 'Dégué', description: 'Mil et yaourt sucré, vanille.', priceInCents: 450, tags: ['HOMEMADE'] },
-      { name: 'Beignets', description: 'Petits beignets moelleux, sucre glace.', priceInCents: 400, tags: ['VEGETARIAN'] },
+      {
+        name: 'Beignets',
+        description: 'Petits beignets moelleux, sucre glace.',
+        priceInCents: 400,
+        tags: ['VEGETARIAN'],
+      },
     ],
   },
 ];

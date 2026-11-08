@@ -2,75 +2,68 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { AdminProfileDto, LoginRequest, LoginResponse } from '@maquis18/shared';
-import { AdminApiError, adminFetch } from '@/lib/admin-api';
+import { AdminApiError, adminFetch, type RequestOptions } from '@/lib/admin-api';
 
-const STORAGE_KEY = 'maquis18.admin-session';
-
-type Session = { accessToken: string; admin: AdminProfileDto };
+type Session = { admin: AdminProfileDto };
 
 type AuthContextValue = {
   session: Session | null;
-  /** false until the stored session has been read (avoids a flash of the login page) */
+  /** false until the API has told us whether a session exists (avoids a flash of the login page) */
   isReady: boolean;
   login: (credentials: LoginRequest) => Promise<void>;
-  logout: () => void;
-  /** adminFetch with the token attached; logs out automatically when the token is rejected */
-  request: <T>(path: string, options?: { method?: 'GET' | 'POST' | 'PATCH' | 'DELETE'; body?: unknown }) => Promise<T>;
+  logout: () => Promise<void>;
+  /** adminFetch that ends the session when the API answers 401 (expired or missing cookie) */
+  request: <T>(path: string, options?: RequestOptions) => Promise<T>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 /*
- * Demo choice: the JWT is kept in localStorage, which is simple to follow.
- * For production, an httpOnly cookie set by the API is safer (JavaScript can't read it).
+ * The JWT lives in an httpOnly cookie set by the API: JavaScript can't read it,
+ * so this provider only keeps the admin profile. On load, it asks GET /auth/me
+ * whether the browser still has a valid session cookie.
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) setSession(JSON.parse(stored) as Session);
-    } catch {
-      // Storage unavailable (private mode…) or corrupted: start logged out
-    }
-    setIsReady(true);
+    let isMounted = true;
+    adminFetch<AdminProfileDto>('/auth/me')
+      .then((admin) => isMounted && setSession({ admin }))
+      .catch(() => isMounted && setSession(null)) // 401 = not logged in, anything else = treat as logged out
+      .finally(() => isMounted && setIsReady(true));
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const saveSession = useCallback((next: Session | null) => {
-    setSession(next);
+  const login = useCallback(async (credentials: LoginRequest) => {
+    const { admin } = await adminFetch<LoginResponse>('/auth/login', { method: 'POST', body: credentials });
+    setSession({ admin });
+  }, []);
+
+  const logout = useCallback(async () => {
     try {
-      if (next) localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      else localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // Ignore: the session still lives in memory for this tab
+      await adminFetch<void>('/auth/logout', { method: 'POST' }); // the API deletes the cookie
+    } finally {
+      setSession(null);
     }
   }, []);
 
-  const login = useCallback(
-    async (credentials: LoginRequest) => {
-      const response = await adminFetch<LoginResponse>('/auth/login', { method: 'POST', body: credentials });
-      saveSession({ accessToken: response.accessToken, admin: response.admin });
-    },
-    [saveSession],
+  const request = useCallback<AuthContextValue['request']>(async (path, options) => {
+    try {
+      return await adminFetch(path, options);
+    } catch (error) {
+      if (error instanceof AdminApiError && error.status === 401) setSession(null);
+      throw error;
+    }
+  }, []);
+
+  const value = useMemo(
+    () => ({ session, isReady, login, logout, request }),
+    [session, isReady, login, logout, request],
   );
-
-  const logout = useCallback(() => saveSession(null), [saveSession]);
-
-  const request = useCallback<AuthContextValue['request']>(
-    async (path, options) => {
-      try {
-        return await adminFetch(path, { ...options, token: session?.accessToken });
-      } catch (error) {
-        if (error instanceof AdminApiError && error.status === 401) logout();
-        throw error;
-      }
-    },
-    [session?.accessToken, logout],
-  );
-
-  const value = useMemo(() => ({ session, isReady, login, logout, request }), [session, isReady, login, logout, request]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

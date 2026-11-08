@@ -3,7 +3,10 @@ import styles from './Reviews.module.css';
 /** Fictional reviews for the demo project */
 const REVIEWS = [
   { author: 'Aïssatou D.', text: 'Copieux, chaud et bon. Le mafé est exactement comme celui de ma grand-mère.' },
-  { author: 'Julien M.', text: 'Arrivés tard sans réserver, on nous a trouvé une table tout de suite. Accueil adorable.' },
+  {
+    author: 'Julien M.',
+    text: 'Arrivés tard sans réserver, on nous a trouvé une table tout de suite. Accueil adorable.',
+  },
   { author: 'Sarah K.', text: 'Une qualité étonnante pour le prix. Le bissap maison est une merveille.' },
 ];
 

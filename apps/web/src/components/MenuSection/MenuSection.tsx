@@ -45,12 +45,7 @@ export function MenuSection({ menu }: MenuSectionProps) {
         </div>
 
         {selectedCategory ? (
-          <ul
-            id="menu-panel"
-            role="tabpanel"
-            aria-labelledby={`tab-${selectedCategory.slug}`}
-            className={styles.grid}
-          >
+          <ul id="menu-panel" role="tabpanel" aria-labelledby={`tab-${selectedCategory.slug}`} className={styles.grid}>
             {selectedCategory.dishes.map((dish) => (
               <li key={dish.id} className={styles.card}>
                 {dish.imageUrl ? (

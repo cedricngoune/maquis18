@@ -33,7 +33,9 @@ function loadTurnstileScript(): Promise<TurnstileApi> {
       script.defer = true;
       document.head.appendChild(script);
     }
-    script.addEventListener('load', () => (window.turnstile ? resolve(window.turnstile) : reject(new Error('Turnstile indisponible'))));
+    script.addEventListener('load', () =>
+      window.turnstile ? resolve(window.turnstile) : reject(new Error('Turnstile indisponible')),
+    );
     script.addEventListener('error', () => reject(new Error('Turnstile indisponible')));
   });
 }
@@ -49,9 +51,11 @@ type TurnstileProps = {
 export function Turnstile({ onTokenChange, resetKey }: TurnstileProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
-  // Keeps the latest callback without re-rendering the widget
+  // Keeps the latest callback without re-rendering the widget (updated after render, as React requires)
   const onTokenChangeRef = useRef(onTokenChange);
-  onTokenChangeRef.current = onTokenChange;
+  useEffect(() => {
+    onTokenChangeRef.current = onTokenChange;
+  }, [onTokenChange]);
 
   useEffect(() => {
     let isMounted = true;

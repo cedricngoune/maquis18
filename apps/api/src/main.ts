@@ -13,7 +13,8 @@ async function bootstrap() {
     .setTitle('Maquis 18 API')
     .setDescription('API du restaurant Maquis 18 ')
     .setVersion('0.3.0')
-    .addBearerAuth() // "Authorize" button in Swagger to test the admin routes
+    .addBearerAuth() // "Authorize" button in Swagger to test the admin routes with a token
+    .addCookieAuth('maquis18_admin') // …or with the session cookie set by POST /auth/login
     .build();
   SwaggerModule.setup('docs', app, SwaggerModule.createDocument(app, swaggerConfig));
 
@@ -27,7 +28,10 @@ async function bootstrap() {
     .replace('127.0.0.1', 'localhost')
     .replace('0.0.0.0', 'localhost')
     .replace(/\/$/, '');
-  Logger.log(`[${process.env.NODE_ENV ?? 'development'}] Server is running on ${baseUrl} — documentation sur ${baseUrl}/docs`, 'Bootstrap');
+  Logger.log(
+    `[${process.env.NODE_ENV ?? 'development'}] Server is running on ${baseUrl} — documentation sur ${baseUrl}/docs`,
+    'Bootstrap',
+  );
 }
 
 bootstrap();

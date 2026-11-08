@@ -1,11 +1,5 @@
 import request from 'supertest';
-import {
-  authHeader,
-  createAdmin,
-  createExpiredToken,
-  createForgedToken,
-  getAuthToken,
-} from './fixtures/auth.fixture';
+import { authHeader, createAdmin, createExpiredToken, createForgedToken, getAuthToken } from './fixtures/auth.fixture';
 import { createCategory, resetDatabase } from './fixtures/database.fixture';
 import { createTestApp, type TestContext } from './utils/create-test-app';
 
@@ -47,11 +41,17 @@ describe('Admin routes protection (e2e)', () => {
     });
 
     it('rejects an expired token', async () => {
-      await request(ctx.app.getHttpServer())[method](path).set(authHeader(createExpiredToken(admin))).expect(401);
+      await request(ctx.app.getHttpServer())
+        [method](path)
+        .set(authHeader(createExpiredToken(admin)))
+        .expect(401);
     });
 
     it('rejects a token signed with another secret', async () => {
-      await request(ctx.app.getHttpServer())[method](path).set(authHeader(createForgedToken(admin))).expect(401);
+      await request(ctx.app.getHttpServer())
+        [method](path)
+        .set(authHeader(createForgedToken(admin)))
+        .expect(401);
     });
   });
 
@@ -74,7 +74,13 @@ describe('Admin routes protection (e2e)', () => {
       const created = await request(ctx.app.getHttpServer())
         .post('/admin/dishes')
         .set(authHeader(token))
-        .send({ name: 'Thiéboudienne', description: 'Riz au poisson', priceInCents: 1500, tags: [], categoryId: category.id })
+        .send({
+          name: 'Thiéboudienne',
+          description: 'Riz au poisson',
+          priceInCents: 1500,
+          tags: [],
+          categoryId: category.id,
+        })
         .expect(201);
 
       await request(ctx.app.getHttpServer())

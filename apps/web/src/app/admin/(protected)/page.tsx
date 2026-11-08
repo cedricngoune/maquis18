@@ -11,7 +11,8 @@ import {
 import { useAuth } from '@/components/admin/AuthProvider';
 import styles from '@/components/admin/admin.module.css';
 
-const toIsoDate = (date: Date) => new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
+const toIsoDate = (date: Date) =>
+  new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
 
 const shiftDay = (isoDate: string, days: number) => {
   const date = new Date(`${isoDate}T12:00:00`);
@@ -67,7 +68,12 @@ export default function AdminReservationsPage() {
           <p className={styles.pageSubtitle}>{formatLongDate(date)}</p>
         </div>
         <div className={styles.dayPicker}>
-          <button type="button" className={styles.buttonGhost} onClick={() => setDate(shiftDay(date, -1))} aria-label="Jour précédent">
+          <button
+            type="button"
+            className={styles.buttonGhost}
+            onClick={() => setDate(shiftDay(date, -1))}
+            aria-label="Jour précédent"
+          >
             ←
           </button>
           <label className="visually-hidden" htmlFor="reservations-date">
@@ -80,7 +86,12 @@ export default function AdminReservationsPage() {
             value={date}
             onChange={(e) => e.target.value && setDate(e.target.value)}
           />
-          <button type="button" className={styles.buttonGhost} onClick={() => setDate(shiftDay(date, 1))} aria-label="Jour suivant">
+          <button
+            type="button"
+            className={styles.buttonGhost}
+            onClick={() => setDate(shiftDay(date, 1))}
+            aria-label="Jour suivant"
+          >
             →
           </button>
           {date !== today && (
@@ -134,7 +145,10 @@ export default function AdminReservationsPage() {
             </thead>
             <tbody>
               {reservations.map((reservation) => (
-                <tr key={reservation.id} className={reservation.status === 'CANCELLED' ? styles.rowCancelled : undefined}>
+                <tr
+                  key={reservation.id}
+                  className={reservation.status === 'CANCELLED' ? styles.rowCancelled : undefined}
+                >
                   <td className={styles.time}>{reservation.time}</td>
                   <td>{reservation.name}</td>
                   <td>{reservation.guests}</td>

@@ -1,11 +1,13 @@
 import { Body, Controller, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiCookieAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ADMIN_SESSION_COOKIE } from '../auth/auth.cookie';
 import { AuthGuard } from '../auth/auth.guard';
 import { ListReservationsQueryDto } from './dto/list-reservations-query.dto';
 import { UpdateReservationStatusDto } from './dto/update-reservation-status.dto';
 import { ReservationsService } from './reservations.service';
 
 @ApiTags('admin · reservations')
+@ApiCookieAuth(ADMIN_SESSION_COOKIE)
 @ApiBearerAuth()
 @UseGuards(AuthGuard) // every route below requires a logged-in admin
 @Controller('admin/reservations')

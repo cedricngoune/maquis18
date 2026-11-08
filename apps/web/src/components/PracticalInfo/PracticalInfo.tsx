@@ -1,3 +1,4 @@
+import { RESTAURANT, formatRestaurantAddress } from '@maquis18/shared';
 import styles from './PracticalInfo.module.css';
 
 export function PracticalInfo() {
@@ -7,8 +8,8 @@ export function PracticalInfo() {
         <h2 className="section-title">Nous trouver</h2>
         <div className={styles.block}>
           <strong>Adresse</strong>
-          <span>[ADRESSE FICTIVE], 75018 Paris</span>
-          <span className={styles.muted}>Métro [STATION LA PLUS PROCHE]</span>
+          <span>{formatRestaurantAddress()}</span>
+          <span className={styles.muted}>Métro {RESTAURANT.metro}</span>
         </div>
         <div className={styles.block}>
           <strong>Horaires</strong>
@@ -16,9 +17,9 @@ export function PracticalInfo() {
         </div>
         <div className={styles.block}>
           <strong>Contact</strong>
-          <a href="tel:+33155106263">01 55 10 62 63</a>
-          <a href="https://www.instagram.com/" target="_blank" rel="noreferrer">
-            @maquis18.paris
+          <a href={`tel:${RESTAURANT.phone.e164}`}>{RESTAURANT.phone.display}</a>
+          <a href={RESTAURANT.instagram.url} target="_blank" rel="noreferrer">
+            {RESTAURANT.instagram.handle}
           </a>
         </div>
       </div>

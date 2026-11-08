@@ -139,7 +139,9 @@ export default function AdminMenuPage() {
                         <div className={styles.dishTitleRow}>
                           <strong>{dish.name}</strong>
                           <span className={styles.price}>{formatPrice(dish.priceInCents)}</span>
-                          {!dish.isAvailable && <span className={`${styles.badge} ${styles.badgeCANCELLED}`}>Masqué</span>}
+                          {!dish.isAvailable && (
+                            <span className={`${styles.badge} ${styles.badgeCANCELLED}`}>Masqué</span>
+                          )}
                         </div>
                         <p className={styles.dishDescription}>{dish.description}</p>
                         {dish.tags.length > 0 && (
@@ -158,7 +160,11 @@ export default function AdminMenuPage() {
                             >
                               Confirmer la suppression
                             </button>
-                            <button type="button" className={styles.buttonGhostSmall} onClick={() => setDeletingId(null)}>
+                            <button
+                              type="button"
+                              className={styles.buttonGhostSmall}
+                              onClick={() => setDeletingId(null)}
+                            >
                               Garder
                             </button>
                           </>
@@ -173,10 +179,18 @@ export default function AdminMenuPage() {
                               {dish.isAvailable ? 'Masquer' : 'Afficher'}
                               <span className="visually-hidden"> {dish.name}</span>
                             </button>
-                            <button type="button" className={styles.buttonGhostSmall} onClick={() => setEditingId(dish.id)}>
+                            <button
+                              type="button"
+                              className={styles.buttonGhostSmall}
+                              onClick={() => setEditingId(dish.id)}
+                            >
                               Modifier<span className="visually-hidden"> {dish.name}</span>
                             </button>
-                            <button type="button" className={styles.buttonGhostSmall} onClick={() => setDeletingId(dish.id)}>
+                            <button
+                              type="button"
+                              className={styles.buttonGhostSmall}
+                              onClick={() => setDeletingId(dish.id)}
+                            >
                               Supprimer<span className="visually-hidden"> {dish.name}</span>
                             </button>
                           </>

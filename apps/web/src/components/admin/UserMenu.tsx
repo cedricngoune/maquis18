@@ -49,7 +49,17 @@ export function UserMenu({ email, onLogout }: UserMenuProps) {
         aria-label={isOpen ? 'Fermer le menu du compte' : 'Ouvrir le menu du compte'}
         onClick={() => setIsOpen((open) => !open)}
       >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
           <circle cx="12" cy="8" r="4" />
           <path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5" />
         </svg>

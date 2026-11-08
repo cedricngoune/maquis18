@@ -20,11 +20,14 @@ describe('Auth (e2e)', () => {
   });
 
   describe('POST /auth/login', () => {
-    it('returns a token and the admin profile with the right credentials', async () => {
+    it('sets an httpOnly session cookie and returns only the admin profile', async () => {
       const response = await request(ctx.app.getHttpServer()).post('/auth/login').send(TEST_ADMIN).expect(200);
 
-      expect(response.body.accessToken).toEqual(expect.any(String));
-      expect(response.body.admin).toEqual({ id: expect.any(String), email: TEST_ADMIN.email });
+      const cookie = ([] as string[]).concat(response.headers['set-cookie'] ?? []).join(';');
+      expect(cookie).toContain('maquis18_admin=');
+      expect(cookie).toContain('HttpOnly');
+      expect(cookie).toContain('SameSite=Lax');
+      expect(response.body).toEqual({ admin: { id: expect.any(String), email: TEST_ADMIN.email } });
     });
 
     it('accepts the e-mail whatever its case and surrounding spaces', async () => {
@@ -72,7 +75,18 @@ describe('Auth (e2e)', () => {
   });
 
   describe('GET /auth/me', () => {
-    it('returns the logged-in admin', async () => {
+    it('accepts the session cookie', async () => {
+      const token = await getAuthToken(ctx.app);
+
+      const response = await request(ctx.app.getHttpServer())
+        .get('/auth/me')
+        .set('Cookie', `maquis18_admin=${token}`)
+        .expect(200);
+
+      expect(response.body.email).toBe(TEST_ADMIN.email);
+    });
+
+    it('returns the logged-in admin (Bearer header)', async () => {
       const token = await getAuthToken(ctx.app);
 
       const response = await request(ctx.app.getHttpServer()).get('/auth/me').set(authHeader(token)).expect(200);

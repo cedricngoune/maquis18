@@ -8,8 +8,8 @@ export function Hero() {
         <p className="eyebrow">Cuisine guinéenne · Paris 18e</p>
         <h1 className={styles.title}>La cuisine de Guinée, faite maison, au cœur du 18e.</h1>
         <p className={styles.lead}>
-          Attiéké, foutou, mafé… des plats généreux préparés chaque jour avec des produits bio, à partager sur place ou à
-          emporter.
+          Attiéké, foutou, mafé… des plats généreux préparés chaque jour avec des produits bio, à partager sur place ou
+          à emporter.
         </p>
         <div className={styles.actions}>
           <a href="#reserver" className="button button--primary">

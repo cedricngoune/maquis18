@@ -6,6 +6,7 @@ import { LunchOffer } from '@/components/LunchOffer/LunchOffer';
 import { MenuSection } from '@/components/MenuSection/MenuSection';
 import { PracticalInfo } from '@/components/PracticalInfo/PracticalInfo';
 import { ReservationSection } from '@/components/ReservationSection/ReservationSection';
+import { RestaurantJsonLd } from '@/components/RestaurantJsonLd/RestaurantJsonLd';
 import { Reviews } from '@/components/Reviews/Reviews';
 import { Story } from '@/components/Story/Story';
 import { fetchMenu } from '@/lib/api';
@@ -16,6 +17,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <RestaurantJsonLd menu={menu} />
       <Header />
       <main>
         <Hero />

@@ -50,11 +50,14 @@ export class SmsService {
     }
 
     try {
-      const response = this.provider === 'textbee' ? await this.sendWithTextbee(to, body) : await this.sendWithTwilio(to, body);
+      const response =
+        this.provider === 'textbee' ? await this.sendWithTextbee(to, body) : await this.sendWithTwilio(to, body);
 
       if (!response.ok) {
         const details = await this.readError(response);
-        this.logger.warn(`SMS refusé par ${this.provider} pour ${maskPhone(to)} (HTTP ${response.status}) : ${details}`);
+        this.logger.warn(
+          `SMS refusé par ${this.provider} pour ${maskPhone(to)} (HTTP ${response.status}) : ${details}`,
+        );
         return false;
       }
       return true;
@@ -90,9 +93,11 @@ export class SmsService {
 
   /** Both providers answer errors in JSON, with different shapes */
   private async readError(response: Response): Promise<string> {
-    const data = (await response.json().catch(() => null)) as
-      | { code?: number; message?: string | string[]; error?: string }
-      | null;
+    const data = (await response.json().catch(() => null)) as {
+      code?: number;
+      message?: string | string[];
+      error?: string;
+    } | null;
     if (!data) return 'réponse illisible';
     const message = Array.isArray(data.message) ? data.message.join(', ') : (data.message ?? data.error ?? '');
     return data.code ? `code ${data.code} — ${message}` : message;

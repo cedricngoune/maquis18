@@ -1,7 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, type ChangeEvent, type FormEvent } from 'react';
-import { MAX_GUESTS, SLOT_MINUTES, type ReservationDto } from '@maquis18/shared';
+import { MAX_GUESTS, RESERVATION_RETENTION_MONTHS, SLOT_MINUTES, type ReservationDto } from '@maquis18/shared';
 import { createReservation } from '@/lib/reservations';
 import { Turnstile } from '../Turnstile/Turnstile';
 import styles from './ReservationSection.module.css';
@@ -148,8 +149,8 @@ export function ReservationSection() {
               {formatDate(reservation.date)} à {reservation.time.replace(':', ' h ')}.
             </p>
             <p>
-              Un récapitulatif vient d’être envoyé à <strong>{reservation.email}</strong> et par SMS. Vous serez
-              prévenu de la même façon dès que la réservation sera confirmée.
+              Un récapitulatif vient d’être envoyé à <strong>{reservation.email}</strong> et par SMS. Vous serez prévenu
+              de la même façon dès que la réservation sera confirmée.
             </p>
             <button type="button" className="button button--outline" onClick={() => setStatus('idle')}>
               Nouvelle réservation
@@ -200,7 +201,12 @@ export function ReservationSection() {
               {suggestedTimes.length > 0 && (
                 <div className={styles.suggestions} role="group" aria-label="Créneaux disponibles">
                   {suggestedTimes.map((time) => (
-                    <button key={time} type="button" className={styles.suggestion} onClick={() => updateField('time', time)}>
+                    <button
+                      key={time}
+                      type="button"
+                      className={styles.suggestion}
+                      onClick={() => updateField('time', time)}
+                    >
                       {time}
                     </button>
                   ))}
@@ -214,17 +220,38 @@ export function ReservationSection() {
             </div>
             <div className={styles.field}>
               <label htmlFor="reservation-name">Nom</label>
-              <input type="text" autoComplete="name" placeholder="Votre nom" required value={form.name} {...fieldProps('name')} />
+              <input
+                type="text"
+                autoComplete="name"
+                placeholder="Votre nom"
+                required
+                value={form.name}
+                {...fieldProps('name')}
+              />
               {errorMessage('name')}
             </div>
             <div className={styles.field}>
               <label htmlFor="reservation-phone">Téléphone</label>
-              <input type="tel" autoComplete="tel" placeholder="06 00 00 00 00" required value={form.phone} {...fieldProps('phone')} />
+              <input
+                type="tel"
+                autoComplete="tel"
+                placeholder="06 00 00 00 00"
+                required
+                value={form.phone}
+                {...fieldProps('phone')}
+              />
               {errorMessage('phone')}
             </div>
             <div className={styles.field}>
               <label htmlFor="reservation-email">E-mail</label>
-              <input type="email" autoComplete="email" placeholder="vous@exemple.fr" required value={form.email} {...fieldProps('email')} />
+              <input
+                type="email"
+                autoComplete="email"
+                placeholder="vous@exemple.fr"
+                required
+                value={form.email}
+                {...fieldProps('email')}
+              />
               {errorMessage('email')}
             </div>
 
@@ -246,6 +273,11 @@ export function ReservationSection() {
               <Turnstile onTokenChange={setCaptchaToken} resetKey={captchaResetKey} />
               {errorMessage('captchaToken')}
             </div>
+
+            <p className={`${styles.privacy} ${styles.fullWidth}`}>
+              Vos coordonnées servent uniquement à gérer votre réservation et sont supprimées{' '}
+              {RESERVATION_RETENTION_MONTHS} mois après votre venue. <Link href="/confidentialite">En savoir plus</Link>
+            </p>
 
             {generalError && (
               <p role="alert" className={`${styles.errorText} ${styles.fullWidth}`}>

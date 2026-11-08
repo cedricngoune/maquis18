@@ -22,3 +22,13 @@
 .logo span {
   color: var(--color-terracotta);
 }
+
+.legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.legal a {
+  color: inherit;
+}

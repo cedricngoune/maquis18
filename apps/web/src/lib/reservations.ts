@@ -3,8 +3,7 @@ import type { ApiErrorResponse, CreateReservationRequest, ReservationDto } from 
 const PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000';
 
 export type CreateReservationResult =
-  | { ok: true; reservation: ReservationDto }
-  | { ok: false; error: ApiErrorResponse };
+  { ok: true; reservation: ReservationDto } | { ok: false; error: ApiErrorResponse };
 
 /** Called from the browser: sends the form to POST /reservations */
 export async function createReservation(request: CreateReservationRequest): Promise<CreateReservationResult> {

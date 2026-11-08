@@ -1,11 +1,20 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCookieAuth,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { ADMIN_SESSION_COOKIE } from '../auth/auth.cookie';
 import { AuthGuard } from '../auth/auth.guard';
 import { CreateDishDto } from './dto/create-dish.dto';
 import { UpdateDishDto } from './dto/update-dish.dto';
 import { MenuService } from './menu.service';
 
 @ApiTags('admin · carte')
+@ApiCookieAuth(ADMIN_SESSION_COOKIE)
 @ApiBearerAuth()
 @UseGuards(AuthGuard)
 @Controller('admin')

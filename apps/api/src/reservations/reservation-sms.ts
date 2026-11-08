@@ -1,8 +1,9 @@
+import { RESTAURANT } from '@maquis18/shared';
 import type { Reservation } from '@prisma/client';
 
 type SmsKind = 'received' | 'confirmed' | 'cancelled';
 
-const RESTAURANT_PHONE = '01 00 00 00 00';
+const RESTAURANT_PHONE = RESTAURANT.phone.display;
 
 /** "mar. 12 mars" — short, an SMS has little room */
 const formatShortDate = (date: Date) =>
