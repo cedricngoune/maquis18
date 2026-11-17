@@ -49,8 +49,16 @@ export function MenuSection({ menu }: MenuSectionProps) {
             {selectedCategory.dishes.map((dish) => (
               <li key={dish.id} className={styles.card}>
                 {dish.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={dish.imageUrl} alt={dish.name} className={styles.photo} />
+                  // eslint-disable-next-line @next/next/no-img-element -- served by the API, already resized to WebP
+                  <img
+                    src={dish.imageUrl}
+                    alt={dish.name}
+                    className={styles.photo}
+                    width={640}
+                    height={180}
+                    loading="lazy"
+                    decoding="async"
+                  />
                 ) : (
                   <div role="img" aria-label={`Photo : ${dish.name}`} className={styles.photo}>
                     Photo · {dish.name}

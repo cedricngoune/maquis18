@@ -1,7 +1,7 @@
 import { RESTAURANT } from '@maquis18/shared';
 import type { Reservation } from '@prisma/client';
 
-type SmsKind = 'received' | 'confirmed' | 'cancelled';
+export type SmsKind = 'received' | 'confirmed' | 'cancelled' | 'cancelledByCustomer';
 
 const RESTAURANT_PHONE = RESTAURANT.phone.display;
 
@@ -21,5 +21,15 @@ export function buildReservationSms(kind: SmsKind, reservation: Reservation): st
       return `Maquis 18 : votre table est confirmée le ${when} (${guests}). À bientôt !`;
     case 'cancelled':
       return `Maquis 18 : votre réservation du ${when} est annulée. Une question ? ${RESTAURANT_PHONE}`;
+    case 'cancelledByCustomer':
+      return `Maquis 18 : votre annulation du ${when} est bien prise en compte. À bientôt !`;
   }
+}
+
+/** Short alert for the restaurant's phone */
+export function buildRestaurantSms(kind: 'new' | 'cancelledByCustomer', reservation: Reservation): string {
+  const when = `${formatShortDate(reservation.date)} à ${reservation.time.replace(':', 'h')}`;
+  return kind === 'new'
+    ? `Nouvelle résa : ${reservation.name}, ${reservation.guests} pers., ${when}. À confirmer dans l’admin.`
+    : `Annulation client : ${reservation.name}, ${reservation.guests} pers., ${when}.`;
 }

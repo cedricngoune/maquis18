@@ -1,20 +1,24 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import {
   DISH_TAG_LABELS,
   formatPrice,
   type AdminDishDto,
   type CategoryDto,
   type CreateDishRequest,
+  type ReorderCategoriesRequest,
   type UpdateDishRequest,
 } from '@maquis18/shared';
 import { useAuth } from '@/components/admin/AuthProvider';
+import { CategoryHeader } from '@/components/admin/CategoryHeader';
 import { DishForm } from '@/components/admin/DishForm';
+import { DishPhoto } from '@/components/admin/DishPhoto';
 import styles from '@/components/admin/admin.module.css';
 
 const DISHES_KEY = ['admin', 'dishes'];
+const CATEGORIES_KEY = ['admin', 'categories'];
 
 export default function AdminMenuPage() {
   const { request } = useAuth();
@@ -22,9 +26,11 @@ export default function AdminMenuPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
 
   const categoriesQuery = useQuery({
-    queryKey: ['admin', 'categories'],
+    queryKey: CATEGORIES_KEY,
     queryFn: () => request<CategoryDto[]>('/admin/categories'),
   });
   const dishesQuery = useQuery({
@@ -63,9 +69,51 @@ export default function AdminMenuPage() {
     },
   });
 
+  // ---------- Categories ----------
+  const refreshCategories = () => queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY });
+
+  const createCategoryMutation = useMutation({
+    mutationFn: (name: string) => request<CategoryDto>('/admin/categories', { method: 'POST', body: { name } }),
+    onSuccess: () => {
+      setIsAddingCategory(false);
+      setNewCategoryName('');
+      return refreshCategories();
+    },
+  });
+  const renameCategoryMutation = useMutation({
+    mutationFn: ({ id, name }: { id: string; name: string }) =>
+      request<CategoryDto>(`/admin/categories/${id}`, { method: 'PATCH', body: { name } }),
+    onSuccess: refreshCategories,
+  });
+  const reorderCategoriesMutation = useMutation({
+    mutationFn: (ids: string[]) =>
+      request<CategoryDto[]>('/admin/categories/reorder', {
+        method: 'POST',
+        body: { ids } satisfies ReorderCategoriesRequest,
+      }),
+    // Shows the new order immediately, without waiting for a refetch
+    onSuccess: (ordered) => queryClient.setQueryData(CATEGORIES_KEY, ordered),
+  });
+  const deleteCategoryMutation = useMutation({
+    mutationFn: (id: string) => request<void>(`/admin/categories/${id}`, { method: 'DELETE' }),
+    onSuccess: refreshCategories,
+  });
+
   const categories = categoriesQuery.data ?? [];
   const dishes = dishesQuery.data ?? [];
-  const mutationError = toggleMutation.error ?? deleteMutation.error;
+  const mutationError =
+    toggleMutation.error ?? deleteMutation.error ?? reorderCategoriesMutation.error ?? deleteCategoryMutation.error;
+
+  const moveCategory = (index: number, direction: -1 | 1) => {
+    const ids = categories.map((category) => category.id);
+    [ids[index], ids[index + direction]] = [ids[index + direction], ids[index]];
+    reorderCategoriesMutation.mutate(ids);
+  };
+
+  const handleCreateCategory = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    createCategoryMutation.mutate(newCategoryName);
+  };
 
   if (categoriesQuery.isPending || dishesQuery.isPending) {
     return <p className={styles.muted}>Chargement de la carte…</p>;
@@ -85,12 +133,47 @@ export default function AdminMenuPage() {
           <h1 className={styles.pageTitle}>La carte</h1>
           <p className={styles.pageSubtitle}>Les modifications apparaissent sur le site en moins d’une minute.</p>
         </div>
-        {!isCreating && (
-          <button type="button" className={styles.buttonPrimary} onClick={() => setIsCreating(true)}>
-            Ajouter un plat
-          </button>
-        )}
+        <div className={styles.rowActions}>
+          {!isAddingCategory && (
+            <button type="button" className={styles.buttonGhost} onClick={() => setIsAddingCategory(true)}>
+              Nouvelle catégorie
+            </button>
+          )}
+          {!isCreating && (
+            <button type="button" className={styles.buttonPrimary} onClick={() => setIsCreating(true)}>
+              Ajouter un plat
+            </button>
+          )}
+        </div>
       </div>
+
+      {isAddingCategory && (
+        <form className={`${styles.card} ${styles.inlineForm}`} onSubmit={handleCreateCategory}>
+          <div className={styles.field}>
+            <label htmlFor="new-category">Nom de la nouvelle catégorie</label>
+            <input
+              id="new-category"
+              className={styles.input}
+              value={newCategoryName}
+              onChange={(event) => setNewCategoryName(event.target.value)}
+              maxLength={40}
+              required
+              autoFocus
+            />
+          </div>
+          <button type="submit" className={styles.buttonPrimary} disabled={createCategoryMutation.isPending}>
+            Créer
+          </button>
+          <button type="button" className={styles.buttonGhost} onClick={() => setIsAddingCategory(false)}>
+            Annuler
+          </button>
+          {createCategoryMutation.isError && (
+            <p role="alert" className={`${styles.errorText} ${styles.span2}`}>
+              {createCategoryMutation.error.message}
+            </p>
+          )}
+        </form>
+      )}
 
       {isCreating && (
         <section className={styles.card} aria-label="Nouveau plat">
@@ -110,13 +193,20 @@ export default function AdminMenuPage() {
         </p>
       )}
 
-      {categories.map((category) => {
+      {categories.map((category, index) => {
         const categoryDishes = dishes.filter((dish) => dish.categoryId === category.id);
         return (
           <section key={category.id} className={styles.categoryBlock} aria-labelledby={`category-${category.id}`}>
-            <h2 id={`category-${category.id}`} className={styles.categoryTitle}>
-              {category.name} <span className={styles.muted}>({categoryDishes.length})</span>
-            </h2>
+            <CategoryHeader
+              category={category}
+              dishCount={categoryDishes.length}
+              isFirst={index === 0}
+              isLast={index === categories.length - 1}
+              isBusy={reorderCategoriesMutation.isPending || deleteCategoryMutation.isPending}
+              onRename={(name) => renameCategoryMutation.mutateAsync({ id: category.id, name })}
+              onMove={(direction) => moveCategory(index, direction)}
+              onDelete={() => deleteCategoryMutation.mutate(category.id)}
+            />
 
             {categoryDishes.length === 0 ? (
               <p className={styles.empty}>Aucun plat dans cette catégorie.</p>
@@ -135,6 +225,7 @@ export default function AdminMenuPage() {
                     </li>
                   ) : (
                     <li key={dish.id} className={`${styles.dishRow} ${dish.isAvailable ? '' : styles.dishHidden}`}>
+                      <DishPhoto dish={dish} />
                       <div className={styles.dishMain}>
                         <div className={styles.dishTitleRow}>
                           <strong>{dish.name}</strong>

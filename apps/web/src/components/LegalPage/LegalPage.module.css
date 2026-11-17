@@ -72,3 +72,8 @@
   border-radius: 12px;
   background: var(--color-sand);
 }
+
+/* Without the "last update" line, the title needs its own space before the content */
+.titleSpaced {
+  margin-bottom: 32px;
+}

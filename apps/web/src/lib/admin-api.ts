@@ -13,7 +13,8 @@ export class AdminApiError extends Error {
 }
 
 export type RequestOptions = {
-  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  /** Sent as JSON, or as multipart/form-data when it is a FormData (file uploads) */
   body?: unknown;
 };
 
@@ -24,11 +25,13 @@ export type RequestOptions = {
 export async function adminFetch<T>(path: string, { method = 'GET', body }: RequestOptions = {}): Promise<T> {
   let response: Response;
   try {
+    const isFormData = body instanceof FormData;
     response = await fetch(`${PUBLIC_API_URL}${path}`, {
       method,
       credentials: 'include',
-      headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      // For FormData, the browser sets the multipart Content-Type itself (with its boundary)
+      headers: body !== undefined && !isFormData ? { 'Content-Type': 'application/json' } : undefined,
+      body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
     });
   } catch {
     throw new AdminApiError(0, { statusCode: 0, message: 'Impossible de joindre le serveur.' });

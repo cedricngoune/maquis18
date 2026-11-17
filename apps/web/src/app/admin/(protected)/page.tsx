@@ -1,7 +1,8 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Suspense, useState } from 'react';
 import {
   RESERVATION_STATUS_LABELS,
   type AdminReservationDto,
@@ -35,11 +36,22 @@ const ACTIONS: Record<ReservationStatus, { label: string; status: ReservationSta
   CANCELLED: [{ label: 'Rétablir', status: 'PENDING' }],
 };
 
+/** useSearchParams needs a Suspense boundary in Next.js (the page is pre-rendered without the query string) */
 export default function AdminReservationsPage() {
+  return (
+    <Suspense fallback={<p className={styles.muted}>Chargement…</p>}>
+      <ReservationsOfTheDay />
+    </Suspense>
+  );
+}
+
+function ReservationsOfTheDay() {
   const { request } = useAuth();
   const queryClient = useQueryClient();
   const today = toIsoDate(new Date());
-  const [date, setDate] = useState(today);
+  // "?date=2030-03-12": opened from the link in the restaurant's notification e-mail
+  const dateParam = useSearchParams().get('date');
+  const [date, setDate] = useState(dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : today);
 
   const reservationsQuery = useQuery({
     queryKey: ['admin', 'reservations', date],

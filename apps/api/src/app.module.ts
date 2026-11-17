@@ -6,9 +6,11 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { MailModule } from './mail/mail.module';
 import { MenuModule } from './menu/menu.module';
+import { OpeningHoursModule } from './opening-hours/opening-hours.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ReservationsModule } from './reservations/reservations.module';
 import { SmsModule } from './sms/sms.module';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
@@ -24,8 +26,10 @@ import { SmsModule } from './sms/sms.module';
     PrismaModule,
     MailModule,
     SmsModule,
+    StorageModule,
     AuthModule,
     MenuModule,
+    OpeningHoursModule,
     ReservationsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

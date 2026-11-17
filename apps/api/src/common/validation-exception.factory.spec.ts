@@ -23,3 +23,20 @@ describe('validationExceptionFactory', () => {
     expect(response).toMatchObject({ errors: { date: 'Valeur invalide.' } });
   });
 });
+
+describe('validationExceptionFactory with nested objects', () => {
+  it('uses dotted paths for errors inside arrays (e.g. the opening hours form)', () => {
+    const errors = [
+      {
+        property: 'days',
+        children: [
+          { property: '2', children: [{ property: 'closesAt', constraints: { matches: 'Heure invalide.' } }] },
+        ],
+      },
+    ] as ValidationError[];
+
+    expect(validationExceptionFactory(errors).getResponse()).toMatchObject({
+      errors: { 'days.2.closesAt': 'Heure invalide.' },
+    });
+  });
+});

@@ -5,7 +5,8 @@ import styles from './LegalPage.module.css';
 
 type LegalPageProps = {
   title: string;
-  updatedAt: string;
+  /** "Dernière mise à jour" line; null to hide it */
+  updatedAt: string | null;
   children: ReactNode;
 };
 
@@ -24,8 +25,8 @@ export function LegalPage({ title, updatedAt, children }: LegalPageProps) {
         </div>
       </header>
       <main className={`container ${styles.main}`}>
-        <h1 className={styles.title}>{title}</h1>
-        <p className={styles.updated}>Dernière mise à jour : {updatedAt}</p>
+        <h1 className={`${styles.title} ${updatedAt ? '' : styles.titleSpaced}`}>{title}</h1>
+        {updatedAt && <p className={styles.updated}>Dernière mise à jour : {updatedAt}</p>}
         <div className={styles.content}>{children}</div>
       </main>
       <Footer />

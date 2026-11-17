@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A new push cancels the previous run of the same branch
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Format, lint, types, tests, build
+    runs-on: ubuntu-latest
+    env:
+      # Placeholder values: no database is needed for these checks (Prisma only generates its client)
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      JWT_SECRET: ci-only-secret
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Generate the Prisma client
+        run: yarn workspace @maquis18/api prisma generate
+
+      - name: Check formatting (Prettier)
+        run: yarn format:check
+
+      - name: Lint (ESLint)
+        run: yarn lint
+
+      - name: Type-check
+        run: yarn typecheck
+
+      - name: Unit tests
+        run: yarn test
+
+      - name: Build
+        run: yarn build

@@ -1,7 +1,11 @@
-import { RESTAURANT, formatRestaurantAddress } from '@maquis18/shared';
+import { RESTAURANT, formatRestaurantAddress, summarizeOpeningHours, type OpeningHourDto } from '@maquis18/shared';
 import styles from './PracticalInfo.module.css';
 
-export function PracticalInfo() {
+type PracticalInfoProps = {
+  openingHours: OpeningHourDto[];
+};
+
+export function PracticalInfo({ openingHours }: PracticalInfoProps) {
   return (
     <section id="infos" className={`container section ${styles.info}`}>
       <div className={styles.details}>
@@ -13,7 +17,9 @@ export function PracticalInfo() {
         </div>
         <div className={styles.block}>
           <strong>Horaires</strong>
-          <span>Tous les jours, 11 h – 22 h</span>
+          {summarizeOpeningHours(openingHours).map((line) => (
+            <span key={line}>{line}</span>
+          ))}
         </div>
         <div className={styles.block}>
           <strong>Contact</strong>

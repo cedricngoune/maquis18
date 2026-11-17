@@ -53,16 +53,18 @@ model OpeningHour {
 }
 
 model Reservation {
-  id        String            @id @default(cuid())
-  date      DateTime          @db.Date
-  time      String // "19:30"
-  guests    Int
-  name      String
-  phone     String
+  id          String            @id @default(cuid())
+  date        DateTime          @db.Date
+  time        String // "19:30"
+  guests      Int
+  name        String
+  phone       String
   /// Optional only because reservations made before this field existed have none
-  email     String?
-  status    ReservationStatus @default(PENDING)
-  createdAt DateTime          @default(now())
+  email       String?
+  /// Secret random string in the customer's e-mail link, to cancel without an account
+  cancelToken String?           @unique
+  status      ReservationStatus @default(PENDING)
+  createdAt   DateTime          @default(now())
 
   @@index([date])
   @@index([date, time])

@@ -2,7 +2,14 @@
 
 import Link from 'next/link';
 import { useState, type ChangeEvent, type FormEvent } from 'react';
-import { MAX_GUESTS, RESERVATION_RETENTION_MONTHS, SLOT_MINUTES, type ReservationDto } from '@maquis18/shared';
+import {
+  MAX_GUESTS,
+  RESERVATION_RETENTION_MONTHS,
+  getBookableSlots,
+  timeToMinutes,
+  type OpeningHourDto,
+  type ReservationDto,
+} from '@maquis18/shared';
 import { createReservation } from '@/lib/reservations';
 import { Turnstile } from '../Turnstile/Turnstile';
 import styles from './ReservationSection.module.css';
@@ -20,31 +27,10 @@ const getTodayIsoDate = () => {
   return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
 };
 
-const toMinutes = (time: string) => {
-  const [hours, minutes] = time.split(':').map(Number);
-  return hours * 60 + minutes;
-};
-
-const toTime = (minutes: number) =>
-  `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
-
-/** Quarter-hour slots between two times, inclusive */
-const slotsBetween = (from: string, to: string) =>
-  Array.from({ length: (toMinutes(to) - toMinutes(from)) / SLOT_MINUTES + 1 }, (_, index) =>
-    toTime(toMinutes(from) + index * SLOT_MINUTES),
-  );
-
-/** Bookable times shown in the dropdown (the API remains the source of truth) */
-const TIME_SLOT_GROUPS = [
-  { label: 'Midi', slots: slotsBetween('11:00', '14:45') },
-  { label: 'Après-midi', slots: slotsBetween('15:00', '17:45') },
-  { label: 'Soir', slots: slotsBetween('18:00', '21:30') },
-];
-
 /** True when the slot is on today's date and already passed (visitor's time zone) */
 const isPastSlot = (date: string, time: string) => {
   const now = new Date();
-  return date === getTodayIsoDate() && toMinutes(time) <= now.getHours() * 60 + now.getMinutes();
+  return date === getTodayIsoDate() && timeToMinutes(time) <= now.getHours() * 60 + now.getMinutes();
 };
 
 const formatDate = (isoDate: string) =>
@@ -52,7 +38,12 @@ const formatDate = (isoDate: string) =>
     new Date(`${isoDate}T00:00:00Z`),
   );
 
-export function ReservationSection() {
+type ReservationSectionProps = {
+  /** Open days and hours, from the API: they drive the time slots offered */
+  openingHours: OpeningHourDto[];
+};
+
+export function ReservationSection({ openingHours }: ReservationSectionProps) {
   const [form, setForm] = useState<FormFields>(INITIAL_FORM);
   const [honeypot, setHoneypot] = useState('');
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
@@ -66,8 +57,13 @@ export function ReservationSection() {
   const updateField = (field: keyof FormFields, value: string | number) => {
     setForm((current) => {
       const next = { ...current, [field]: value };
-      // A new date can make the chosen time already passed (e.g. switching to today)
-      if (field === 'date' && next.time && isPastSlot(next.date, next.time)) next.time = '';
+      // A new date can make the chosen time unavailable (already passed, or outside that day's hours)
+      if (field === 'date' && next.time) {
+        const stillOffered = getBookableSlots(openingHours, next.date)?.some((group) =>
+          group.slots.includes(next.time),
+        );
+        if (!stillOffered || isPastSlot(next.date, next.time)) next.time = '';
+      }
       return next;
     });
     // The visitor is fixing this field: hide its previous error
@@ -128,6 +124,9 @@ export function ReservationSection() {
     ) : null;
 
   const isSubmitting = status === 'submitting';
+  // null = closed that day, [] = no date chosen yet
+  const slotGroups = form.date ? getBookableSlots(openingHours, form.date) : [];
+  const isClosedDay = slotGroups === null;
 
   return (
     <section id="reserver" className={styles.wrapper}>
@@ -166,11 +165,15 @@ export function ReservationSection() {
             <div className={styles.field}>
               <label htmlFor="reservation-time">Heure</label>
               <div className={styles.selectWrapper}>
-                <select required value={form.time} {...fieldProps('time')}>
+                <select required value={form.time} disabled={!form.date || isClosedDay} {...fieldProps('time')}>
                   <option value="" disabled>
-                    Choisir un créneau
+                    {!form.date
+                      ? 'Choisissez d’abord une date'
+                      : isClosedDay
+                        ? 'Fermé ce jour-là'
+                        : 'Choisir un créneau'}
                   </option>
-                  {TIME_SLOT_GROUPS.map((group) => (
+                  {(slotGroups ?? []).map((group) => (
                     <optgroup key={group.label} label={group.label}>
                       {group.slots.map((slot) => (
                         <option key={slot} value={slot} disabled={isPastSlot(form.date, slot)}>

@@ -1,10 +1,16 @@
-import { PhotoPlaceholder } from '../PhotoPlaceholder/PhotoPlaceholder';
+import { SiteImage } from '../SiteImage/SiteImage';
 import styles from './Story.module.css';
 
 export function Story() {
   return (
     <section id="histoire" className={`container section ${styles.story}`}>
-      <PhotoPlaceholder label="L'équipe en cuisine" height={420} className={styles.photo} />
+      <SiteImage
+        file="story.webp"
+        alt="L'équipe en cuisine"
+        height={420}
+        className={styles.photo}
+        sizes="(max-width: 900px) 100vw, 480px"
+      />
       <div className={styles.text}>
         <p className="eyebrow">Notre histoire</p>
         <h2 className="section-title">Des recettes de famille, de Conakry à Paris.</h2>

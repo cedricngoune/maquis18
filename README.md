@@ -1,6 +1,7 @@
 # Maquis 18
 
 Site vitrine d'un restaurant de cuisine africaine pour particulier.
+
 ## Stacks techniques
 
 - `apps/api` — API NestJS + Prisma + PostgreSQL (documentation Swagger sur `/docs`)

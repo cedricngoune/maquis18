@@ -8,9 +8,18 @@ services:
       POSTGRES_PASSWORD: maquis18
       POSTGRES_DB: maquis18
     ports:
-      - "5435:5432"
+      - '5435:5432'
     volumes:
       - db-data:/var/lib/postgresql/data
+
+  # Local mail catcher: every e-mail sent by the API is visible on http://localhost:8025
+  mail:
+    image: axllent/mailpit:latest
+    container_name: maquis18-mail
+    restart: unless-stopped
+    ports:
+      - '1026:1025' # by defaut 1025
+      - '8025:8025' # web interface
 
 volumes:
   db-data:

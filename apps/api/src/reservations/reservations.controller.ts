@@ -1,5 +1,12 @@
-import { Body, Controller, Ip, Post } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiCreatedResponse, ApiTags, ApiTooManyRequestsResponse } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, Ip, Param, Post } from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiTags,
+  ApiTooManyRequestsResponse,
+} from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { ReservationsService } from './reservations.service';
@@ -17,5 +24,23 @@ export class ReservationsController {
   @ApiTooManyRequestsResponse({ description: 'Trop de tentatives depuis cette adresse IP' })
   create(@Body() dto: CreateReservationDto, @Ip() ip: string) {
     return this.reservationsService.create(dto, ip);
+  }
+
+  @Get('manage/:token')
+  // Limits guessing attempts (the token is long enough anyway: 192 random bits)
+  @Throttle({ default: { limit: 20, ttl: 10 * 60_000 } })
+  @ApiOkResponse({ description: 'Résumé de la réservation liée au lien d’annulation' })
+  @ApiNotFoundResponse({ description: 'Lien invalide' })
+  findByToken(@Param('token') token: string) {
+    return this.reservationsService.findByCancelToken(token);
+  }
+
+  @Post('manage/:token/cancel')
+  @HttpCode(200)
+  @Throttle({ default: { limit: 10, ttl: 10 * 60_000 } })
+  @ApiOkResponse({ description: 'Réservation annulée (le client et le restaurant sont prévenus)' })
+  @ApiBadRequestResponse({ description: 'Réservation déjà passée' })
+  cancelByToken(@Param('token') token: string) {
+    return this.reservationsService.cancelByToken(token);
   }
 }

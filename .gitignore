@@ -4,3 +4,7 @@ dist
 .turbo
 .env
 *.log
+coverage
+*.tsbuildinfo
+.DS_Store
+apps/api/uploads

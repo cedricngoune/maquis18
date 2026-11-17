@@ -1,4 +1,4 @@
-import { PhotoPlaceholder } from '../PhotoPlaceholder/PhotoPlaceholder';
+import { SiteImage } from '../SiteImage/SiteImage';
 import styles from './Hero.module.css';
 
 export function Hero() {
@@ -20,7 +20,14 @@ export function Hero() {
           </a>
         </div>
       </div>
-      <PhotoPlaceholder label="Attiéké poisson braisé" height={520} className={styles.photo} />
+      <SiteImage
+        file="hero.webp"
+        alt="Attiéké poisson braisé"
+        height={520}
+        className={styles.photo}
+        sizes="(max-width: 900px) 100vw, 560px"
+        priority
+      />
     </section>
   );
 }

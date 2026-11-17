@@ -43,7 +43,7 @@ export default function LegalNoticePage() {
         Les textes, le design et le code de ce site sont la propriété de leur auteur, sauf mention contraire. Toute
         reproduction sans autorisation est interdite.
       </p>
-      <p>Crédits photos : [AUTEURS ET SOURCES DES PHOTOS].</p>
+      <p>Crédits photos : images générées par intelligence artificielle (OpenAI GPT Image), sauf mention contraire.</p>
 
       <h2>Données personnelles</h2>
       <p>

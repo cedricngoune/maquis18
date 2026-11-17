@@ -1,18 +1,20 @@
-import { RESTAURANT, type MenuDto } from '@maquis18/shared';
+import { RESTAURANT, type MenuDto, type OpeningHourDto } from '@maquis18/shared';
 import { SITE_URL } from '@/lib/site';
 
 type RestaurantJsonLdProps = {
   menu: MenuDto;
+  openingHours: OpeningHourDto[];
 };
 
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+/** schema.org day names, indexed like JavaScript (0 = Sunday) */
+const SCHEMA_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 /**
  * schema.org "Restaurant" data, read by Google to show the restaurant
  * (hours, address, price range, menu) directly in search results and Maps.
  * Test it with https://search.google.com/test/rich-results
  */
-export function RestaurantJsonLd({ menu }: RestaurantJsonLdProps) {
+export function RestaurantJsonLd({ menu, openingHours }: RestaurantJsonLdProps) {
   const data = {
     '@context': 'https://schema.org',
     '@type': 'Restaurant',
@@ -31,12 +33,12 @@ export function RestaurantJsonLd({ menu }: RestaurantJsonLdProps) {
       addressLocality: RESTAURANT.address.city,
       addressCountry: RESTAURANT.address.country,
     },
-    openingHoursSpecification: {
+    openingHoursSpecification: openingHours.map((hour) => ({
       '@type': 'OpeningHoursSpecification',
-      dayOfWeek: DAYS,
-      opens: RESTAURANT.openingHours.opens,
-      closes: RESTAURANT.openingHours.closes,
-    },
+      dayOfWeek: SCHEMA_DAYS[hour.dayOfWeek],
+      opens: hour.opensAt,
+      closes: hour.closesAt,
+    })),
     acceptsReservations: `${SITE_URL}/#reserver`,
     sameAs: [RESTAURANT.instagram.url],
     hasMenu: {

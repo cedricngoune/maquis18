@@ -9,25 +9,25 @@ import { ReservationSection } from '@/components/ReservationSection/ReservationS
 import { RestaurantJsonLd } from '@/components/RestaurantJsonLd/RestaurantJsonLd';
 import { Reviews } from '@/components/Reviews/Reviews';
 import { Story } from '@/components/Story/Story';
-import { fetchMenu } from '@/lib/api';
+import { fetchMenu, fetchOpeningHours } from '@/lib/api';
 
 export default async function HomePage() {
   // Server-side fetch: the menu is in the HTML Google receives (SEO)
-  const menu = await fetchMenu();
+  const [menu, openingHours] = await Promise.all([fetchMenu(), fetchOpeningHours()]);
 
   return (
     <>
-      <RestaurantJsonLd menu={menu} />
+      <RestaurantJsonLd menu={menu} openingHours={openingHours} />
       <Header />
       <main>
         <Hero />
-        <KeyInfo />
+        <KeyInfo openingHours={openingHours} />
         <Story />
         <MenuSection menu={menu} />
         <LunchOffer />
         <Reviews />
-        <ReservationSection />
-        <PracticalInfo />
+        <ReservationSection openingHours={openingHours} />
+        <PracticalInfo openingHours={openingHours} />
       </main>
       <Footer />
     </>

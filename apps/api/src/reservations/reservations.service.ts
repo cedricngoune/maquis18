@@ -5,19 +5,21 @@ import {
   SLOT_MINUTES,
   type AdminReservationDto,
   type ApiErrorResponse,
+  type ManageReservationDto,
   type ReservationDto,
   type ReservationField,
   type ReservationStatus,
 } from '@maquis18/shared';
 import { Prisma, type OpeningHour, type Reservation } from '@prisma/client';
+import { randomBytes } from 'node:crypto';
 import { CaptchaService } from '../captcha/captcha.service';
 import { getDayOfWeek, getParisNow, isValidCalendarDate, toMinutes } from '../common/paris-time';
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SmsService } from '../sms/sms.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
-import { buildReservationEmail } from './reservation-emails';
-import { buildReservationSms } from './reservation-sms';
+import { buildReservationEmail, buildRestaurantEmail, type CustomerEmailKind } from './reservation-emails';
+import { buildReservationSms, buildRestaurantSms } from './reservation-sms';
 
 /** Statuses that take seats in a slot (a cancelled table frees its seats) */
 const ACTIVE_STATUSES: ReservationStatus[] = ['PENDING', 'CONFIRMED'];
@@ -35,6 +37,11 @@ export class ReservationsService {
   private readonly logger = new Logger(ReservationsService.name);
   /** Maximum number of guests (covers) per quarter-hour slot */
   private readonly slotCapacity: number;
+  /** Public URL of the website, for the links in e-mails */
+  private readonly webUrl: string;
+  /** Where the restaurant wants to be alerted of new bookings (both optional) */
+  private readonly restaurantEmail?: string;
+  private readonly restaurantPhone?: string;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -44,6 +51,13 @@ export class ReservationsService {
     config: ConfigService,
   ) {
     this.slotCapacity = Number(config.get('RESERVATION_SLOT_CAPACITY') ?? DEFAULT_SLOT_CAPACITY);
+    this.webUrl = (
+      config.get<string>('PUBLIC_WEB_URL') ??
+      config.get<string>('WEB_ORIGIN') ??
+      'http://localhost:3001'
+    ).replace(/\/$/, '');
+    this.restaurantEmail = config.get<string>('RESTAURANT_NOTIFY_EMAIL') || undefined;
+    this.restaurantPhone = config.get<string>('RESTAURANT_NOTIFY_PHONE') || undefined;
   }
 
   async create(dto: CreateReservationDto, ip?: string): Promise<ReservationDto> {
@@ -77,8 +91,8 @@ export class ReservationsService {
       } satisfies ApiErrorResponse);
     }
 
-    // 4. Confirmation e-mail + SMS (a sending failure is logged, the reservation stays valid)
-    await this.notify('received', reservation);
+    // 4. Confirmation to the customer + alert to the restaurant (a sending failure is logged, the reservation stays valid)
+    await Promise.all([this.notify('received', reservation), this.notifyRestaurant('new', reservation)]);
     return this.toDto(reservation);
   }
 
@@ -96,7 +110,16 @@ export class ReservationsService {
             throw new SlotFullError();
           }
           return tx.reservation.create({
-            data: { date, time: dto.time, guests: dto.guests, name: dto.name, phone: dto.phone, email: dto.email },
+            data: {
+              date,
+              time: dto.time,
+              guests: dto.guests,
+              name: dto.name,
+              phone: dto.phone,
+              email: dto.email,
+              // 192 random bits: impossible to guess, so the link alone proves the e-mail was received
+              cancelToken: randomBytes(24).toString('base64url'),
+            },
           });
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
@@ -155,6 +178,58 @@ export class ReservationsService {
       .slice(0, MAX_SUGGESTIONS);
   }
 
+  // ---------- Self-service cancellation (link in the customer's e-mail) ----------
+
+  async findByCancelToken(token: string): Promise<ManageReservationDto> {
+    const reservation = await this.findByTokenOrThrow(token);
+    return {
+      date: reservation.date.toISOString().slice(0, 10),
+      time: reservation.time,
+      guests: reservation.guests,
+      name: reservation.name,
+      status: reservation.status,
+      canCancel: reservation.status !== 'CANCELLED' && !this.isPast(reservation),
+    };
+  }
+
+  async cancelByToken(token: string): Promise<ManageReservationDto> {
+    const reservation = await this.findByTokenOrThrow(token);
+
+    if (reservation.status !== 'CANCELLED') {
+      if (this.isPast(reservation)) {
+        throw new BadRequestException({
+          statusCode: 400,
+          message: 'Cette réservation est déjà passée : elle ne peut plus être annulée.',
+        } satisfies ApiErrorResponse);
+      }
+      const cancelled = await this.prisma.reservation.update({
+        where: { id: reservation.id },
+        data: { status: 'CANCELLED' },
+      });
+      await Promise.all([
+        this.notify('cancelledByCustomer', cancelled),
+        this.notifyRestaurant('cancelledByCustomer', cancelled),
+      ]);
+    }
+    // Clicking the link twice is not an error: the reservation is cancelled either way
+    return this.findByCancelToken(token);
+  }
+
+  private async findByTokenOrThrow(token: string): Promise<Reservation> {
+    const reservation = token ? await this.prisma.reservation.findUnique({ where: { cancelToken: token } }) : null;
+    if (!reservation) {
+      throw new NotFoundException('Réservation introuvable. Le lien est peut-être incomplet.');
+    }
+    return reservation;
+  }
+
+  /** True once the booked time has passed (Paris time) */
+  private isPast(reservation: Reservation): boolean {
+    const now = getParisNow();
+    const date = reservation.date.toISOString().slice(0, 10);
+    return date < now.date || (date === now.date && toMinutes(reservation.time) <= toMinutes(now.time));
+  }
+
   // ---------- Admin ----------
 
   /** All reservations of one day (today in Paris by default), earliest first */
@@ -188,12 +263,27 @@ export class ReservationsService {
 
   // ---------- Helpers ----------
 
-  /** E-mail and SMS are sent in parallel; neither can throw */
-  private async notify(kind: 'received' | 'confirmed' | 'cancelled', reservation: Reservation): Promise<void> {
+  /** E-mail and SMS to the customer, in parallel; neither can throw */
+  private async notify(kind: CustomerEmailKind, reservation: Reservation): Promise<void> {
     const email = reservation.email; // null for reservations created before e-mails existed
+    const manageUrl = reservation.cancelToken
+      ? `${this.webUrl}/reservation/annuler?token=${encodeURIComponent(reservation.cancelToken)}`
+      : undefined;
     await Promise.all([
-      email ? this.mail.send(buildReservationEmail(kind, { ...reservation, email })) : null,
+      email ? this.mail.send(buildReservationEmail(kind, { ...reservation, email }, { manageUrl })) : null,
       this.sms.send(reservation.phone, buildReservationSms(kind, reservation)),
+    ]);
+  }
+
+  /** Alert to the restaurant, if RESTAURANT_NOTIFY_EMAIL and/or RESTAURANT_NOTIFY_PHONE are set */
+  private async notifyRestaurant(kind: 'new' | 'cancelledByCustomer', reservation: Reservation): Promise<void> {
+    const day = reservation.date.toISOString().slice(0, 10);
+    const adminUrl = `${this.webUrl}/admin?date=${day}`;
+    await Promise.all([
+      this.restaurantEmail
+        ? this.mail.send(buildRestaurantEmail(kind, reservation, { to: this.restaurantEmail, adminUrl }))
+        : null,
+      this.restaurantPhone ? this.sms.send(this.restaurantPhone, buildRestaurantSms(kind, reservation)) : null,
     ]);
   }
 

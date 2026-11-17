@@ -10,6 +10,7 @@ import styles from './admin.module.css';
 const NAV_LINKS = [
   { href: '/admin', label: 'Réservations' },
   { href: '/admin/carte', label: 'La carte' },
+  { href: '/admin/horaires', label: 'Horaires' },
 ];
 
 /** Layout of every protected admin page: redirects to the login page when there is no session */

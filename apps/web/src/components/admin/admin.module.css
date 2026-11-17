@@ -590,3 +590,144 @@
   margin: 0;
   font-size: 30px;
 }
+
+/* ---------- Opening hours ---------- */
+.hoursList {
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+}
+
+.hoursRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+  min-height: 64px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.hoursDay {
+  width: 140px;
+  font-weight: 600;
+}
+
+.hoursTimes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hoursTimes .input {
+  width: 110px;
+}
+
+.hoursError {
+  flex-basis: 100%;
+}
+
+.successText {
+  align-self: center;
+  color: #1f5134;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ---------- Dish photos ---------- */
+.dishPhoto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  width: 132px;
+}
+
+.dishThumb {
+  width: 132px;
+  height: 88px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #e9d9bf;
+}
+
+.dishThumbEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6a5f55;
+  font-size: 12px;
+}
+
+.dishPhotoActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.linkButton {
+  min-height: 36px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: #b3261e;
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ---------- Categories ---------- */
+.categoryHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.categoryHeader .categoryTitle {
+  margin: 0;
+}
+
+.categoryInput {
+  width: auto;
+  flex: 1 1 240px;
+}
+
+.iconButton {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #cdbea6;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.iconButton:hover:not(:disabled) {
+  border-color: var(--color-forest);
+}
+
+.iconButton:disabled,
+.buttonGhostSmall:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.inlineForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.inlineForm .field {
+  flex: 1 1 260px;
+}

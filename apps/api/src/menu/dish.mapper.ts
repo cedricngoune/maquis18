@@ -1,5 +1,6 @@
 import type { AdminDishDto, DishDto } from '@maquis18/shared';
 import type { Dish } from '@prisma/client';
+import { toPublicImageUrl } from '../storage/storage.paths';
 
 export const toDishDto = (dish: Dish): DishDto => ({
   id: dish.id,
@@ -7,7 +8,7 @@ export const toDishDto = (dish: Dish): DishDto => ({
   description: dish.description,
   priceInCents: dish.priceInCents,
   tags: dish.tags,
-  imageUrl: dish.imageUrl,
+  imageUrl: toPublicImageUrl(dish.imageUrl), // stored as "/uploads/…", served as an absolute URL
   isAvailable: dish.isAvailable,
 });
 

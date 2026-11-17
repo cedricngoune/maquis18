@@ -2,6 +2,7 @@ import { ValidationPipe, type INestApplication } from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import { validationExceptionFactory } from './common/validation-exception.factory';
+import { UPLOADS_URL_PREFIX, getUploadsDir } from './storage/storage.paths';
 
 /**
  * Global configuration shared by main.ts and the e2e tests,
@@ -20,6 +21,15 @@ export function configureApp(app: INestApplication): void {
   // credentials: true lets the browser send and receive the session cookie across origins
   // (the origin must then be explicit, never "*")
   app.enableCors({ origin: process.env.WEB_ORIGIN ?? 'http://localhost:3001', credentials: true });
+
+  // Uploaded images (dish photos): file names contain a content hash, so they can be cached for a long time
+  (app as NestExpressApplication).useStaticAssets(getUploadsDir(), {
+    prefix: UPLOADS_URL_PREFIX,
+    maxAge: '30d',
+    immutable: true,
+    // The site (another origin) displays these images
+    setHeaders: (response) => response.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'),
+  });
 
   // Validates every request body against its DTO (class-validator decorators)
   app.useGlobalPipes(

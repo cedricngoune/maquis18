@@ -1,0 +1,10 @@
+node_modules
+dist
+.next
+.turbo
+coverage
+yarn.lock
+package-lock.json
+apps/api/prisma/migrations
+*.tsbuildinfo
+.idea

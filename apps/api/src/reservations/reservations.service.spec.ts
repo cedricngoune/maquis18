@@ -37,7 +37,9 @@ function createFakePrisma() {
       return { ...row };
     }),
     findUnique: jest.fn(async ({ where }) => {
-      const row = rows.find((candidate) => candidate.id === where.id);
+      const row = rows.find((candidate) =>
+        where.cancelToken !== undefined ? candidate.cancelToken === where.cancelToken : candidate.id === where.id,
+      );
       return row ? { ...row } : null; // copies, like Prisma: callers can't mutate the "database"
     }),
     update: jest.fn(async ({ where, data }) => ({
@@ -94,7 +96,13 @@ describe('ReservationsService', () => {
     mail = { send: jest.fn().mockResolvedValue(true) };
     sms = { send: jest.fn().mockResolvedValue(true) };
     captcha = { assertHuman: jest.fn().mockResolvedValue(undefined) };
-    const config = { get: (key: string) => (key === 'RESERVATION_SLOT_CAPACITY' ? '6' : undefined) } as ConfigService;
+    const settings: Record<string, string> = {
+      RESERVATION_SLOT_CAPACITY: '6',
+      PUBLIC_WEB_URL: 'https://maquis18.test',
+      RESTAURANT_NOTIFY_EMAIL: 'resto@maquis18.test',
+      RESTAURANT_NOTIFY_PHONE: '01 00 00 00 00',
+    };
+    const config = { get: (key: string) => settings[key] } as ConfigService;
     service = new ReservationsService(prisma as never, mail as never, sms as never, captcha as never, config);
   });
 
@@ -172,6 +180,96 @@ describe('ReservationsService', () => {
         await expect(service.create(validDto())).resolves.toBeDefined();
         expect(prisma.$transaction).toHaveBeenCalledTimes(2);
       });
+    });
+  });
+
+  describe('notifications', () => {
+    it('gives each reservation a long random cancel token', async () => {
+      await service.create(validDto());
+      await service.create(validDto({ time: '20:15' }));
+
+      const [first, second] = prisma.rows.map((row) => row.cancelToken);
+      expect(first).toMatch(/^[A-Za-z0-9_-]{32}$/);
+      expect(first).not.toBe(second);
+    });
+
+    it('puts the cancellation link in the customer e-mail', async () => {
+      await service.create(validDto());
+
+      const customerEmail = mail.send.mock.calls.find(([message]) => message.to === 'awa@example.com')[0];
+      expect(customerEmail.html).toContain(
+        `https://maquis18.test/reservation/annuler?token=${encodeURIComponent(prisma.rows[0].cancelToken!)}`,
+      );
+    });
+
+    it('alerts the restaurant by e-mail (with a link to that day in the admin) and by SMS', async () => {
+      await service.create(validDto());
+
+      const restaurantEmail = mail.send.mock.calls.find(([message]) => message.to === 'resto@maquis18.test')[0];
+      expect(restaurantEmail.subject).toContain('Nouvelle réservation : Awa Diallo');
+      expect(restaurantEmail.html).toContain('https://maquis18.test/admin?date=2030-03-12');
+      expect(sms.send).toHaveBeenCalledWith('01 00 00 00 00', expect.stringContaining('Nouvelle résa'));
+    });
+  });
+
+  describe('cancellation by the customer (e-mail link)', () => {
+    const tokenOf = () => prisma.rows[0].cancelToken!;
+
+    it('shows the reservation without any contact details', async () => {
+      await service.create(validDto());
+
+      const view = await service.findByCancelToken(tokenOf());
+
+      expect(view).toEqual({
+        date: '2030-03-12',
+        time: '20:00',
+        guests: 2,
+        name: 'Awa Diallo',
+        status: 'PENDING',
+        canCancel: true,
+      });
+      expect(view).not.toHaveProperty('phone');
+      expect(view).not.toHaveProperty('email');
+    });
+
+    it('cancels, frees the seats and tells both the customer and the restaurant', async () => {
+      await service.create(validDto({ guests: 6 }));
+      mail.send.mockClear();
+      sms.send.mockClear();
+
+      const view = await service.cancelByToken(tokenOf());
+
+      expect(view).toMatchObject({ status: 'CANCELLED', canCancel: false });
+      expect(mail.send.mock.calls.map(([message]) => message.subject)).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('annulation est bien prise en compte'),
+          expect.stringContaining('Annulation : Awa Diallo'),
+        ]),
+      );
+      expect(sms.send).toHaveBeenCalledTimes(2);
+      await expect(service.create(validDto({ guests: 6 }))).resolves.toBeDefined(); // the 6 seats are free again
+    });
+
+    it('treats a second click as a success, without sending anything again', async () => {
+      await service.create(validDto());
+      await service.cancelByToken(tokenOf());
+      mail.send.mockClear();
+
+      await expect(service.cancelByToken(tokenOf())).resolves.toMatchObject({ status: 'CANCELLED' });
+      expect(mail.send).not.toHaveBeenCalled();
+    });
+
+    it('refuses to cancel a reservation that has already taken place', async () => {
+      await service.create(validDto());
+      jest.setSystemTime(new Date('2030-03-12T20:30:00Z')); // 21:30 in Paris, after the 20:00 booking
+
+      await expect(service.findByCancelToken(tokenOf())).resolves.toMatchObject({ canCancel: false });
+      await expect(service.cancelByToken(tokenOf())).rejects.toThrow('déjà passée');
+    });
+
+    it('answers "not found" for an unknown or empty token', async () => {
+      await expect(service.findByCancelToken('unknown-token')).rejects.toThrow('Réservation introuvable');
+      await expect(service.findByCancelToken('')).rejects.toThrow('Réservation introuvable');
     });
   });
 

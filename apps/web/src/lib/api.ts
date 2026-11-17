@@ -1,4 +1,4 @@
-import type { MenuDto } from '@maquis18/shared';
+import { DEFAULT_OPENING_HOURS, type MenuDto, type OpeningHourDto } from '@maquis18/shared';
 
 const API_URL = process.env.API_URL ?? 'http://localhost:5000';
 
@@ -18,5 +18,23 @@ export async function fetchMenu(): Promise<MenuDto> {
   } catch (error) {
     console.error('API injoignable :', error);
     return [];
+  }
+}
+
+/**
+ * Opening hours, refreshed every 60 s like the menu.
+ * Falls back to the default week if the API is unreachable, so the site never shows empty hours.
+ */
+export async function fetchOpeningHours(): Promise<OpeningHourDto[]> {
+  try {
+    const response = await fetch(`${API_URL}/opening-hours`, { next: { revalidate: 60 } });
+    if (!response.ok) {
+      console.error(`Impossible de charger les horaires (${response.status})`);
+      return DEFAULT_OPENING_HOURS;
+    }
+    return (await response.json()) as OpeningHourDto[];
+  } catch (error) {
+    console.error('API injoignable :', error);
+    return DEFAULT_OPENING_HOURS;
   }
 }

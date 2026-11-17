@@ -4,6 +4,6 @@
     "types": ["jest", "node"],
     "noEmit": true
   },
-  "include": ["src/**/*.ts", "jest.setup.ts"],
+  "include": ["src/**/*.ts", "scripts/**/*.ts", "jest.setup.ts"],
   "exclude": ["node_modules"]
 }
